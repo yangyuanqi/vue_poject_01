@@ -24,7 +24,7 @@
           <el-submenu :index="item.id+''" v-for="item in menuList" :key="item.id">
             <template slot="title">
               <i :class="iconsObj[item.id]"></i>
-              <span>{{item.authName}}</span>
+              <span>{{item.title}}</span>
             </template>
 
             <el-menu-item
@@ -34,7 +34,7 @@
               @click="saveNavState('/'+subItem.path)"
             >
               <i class="el-icon-menu"></i>
-              <span>{{subItem.authName}}</span>
+              <span>{{subItem.title}}</span>
             </el-menu-item>
           </el-submenu>
         </el-menu>
@@ -73,9 +73,9 @@ export default {
     },
     async getMenuList() {
       const { data: res } = await this.$http.get('menus')
-      if (res.meta.status !== 200) {
+      if (res.status !== 200) {
         return this.$message({
-          message: res.meta.msg,
+          message: res.msg,
           type: 'warning'
         })
       }

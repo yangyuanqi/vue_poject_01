@@ -7,7 +7,7 @@ import axios from 'axios'
 import './assets/fonts/iconfont.css'
 import TreeTable from 'vue-table-with-tree-grid'
 
-axios.defaults.baseURL = 'http://127.0.0.1:8888/api/private/v1'
+axios.defaults.baseURL = 'http://127.0.0.1:9090/v1'
 axios.interceptors.request.use(config => {
   config.headers.Authorization = window.sessionStorage.getItem('token')
   return config

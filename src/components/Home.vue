@@ -28,10 +28,10 @@
             </template>
 
             <el-menu-item
-              :index="'/'+subItem.path"
+              :index="'/'+subItem.name"
               v-for="subItem in item.children"
               :key="subItem.id"
-              @click="saveNavState('/'+subItem.path)"
+              @click="saveNavState('/'+subItem.name)"
             >
               <i class="el-icon-menu"></i>
               <span>{{subItem.title}}</span>

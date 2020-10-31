@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Crumbs :crumbs-name="['权限','管理员管理']"></Crumbs>
+    <Crumbs :crumbs-name="['小说','小说列表']"></Crumbs>
     <el-card>
       <!--面包屑-->
       <el-row :gutter="20">
@@ -10,25 +10,20 @@
           </el-input>
         </el-col>
         <el-col :span="4">
-          <el-button type="primary" @click="addDialogShow">添加用户</el-button>
+          <el-button type="primary" @click="addDialogShow">添加</el-button>
         </el-col>
       </el-row>
       <!--表格-->
       <el-table :data="dataList" style="width: 100%" border stripe>
         <el-table-column type="index" label="#"></el-table-column>
         <el-table-column prop="id" label="ID" width="180"></el-table-column>
-        <el-table-column prop="username" label="用户名" width="180"></el-table-column>
-        <el-table-column prop="nickname" label="昵称"></el-table-column>
-        <el-table-column prop="nickname" label="所属组别"></el-table-column>
-        <el-table-column prop="email" label="Email"></el-table-column>
-        <el-table-column label="状态">
-          <template slot-scope="scope">
-            <el-switch v-model="scope.row.status" @change="adminStateChange(scope.row)" active-value="normal"
-                       inactive-value="hidden"></el-switch>
-          </template>
-        </el-table-column>
-        <el-table-column prop="logintime" label="最后登录" :formatter="dateFormat"></el-table-column>
-        <el-table-column label="操作" width="180px">
+        <el-table-column prop="book_name" label="小说名称"></el-table-column>
+        <el-table-column prop="book_type" label="类型"></el-table-column>
+        <el-table-column prop="book_author" label="作者"></el-table-column>
+        <el-table-column prop="book_new_chapter" label="最新章节"></el-table-column>
+        <el-table-column prop="book_last_at" label="最后更新" :formatter="dateFormat"></el-table-column>
+        <el-table-column prop="createtime" label="创建时间" :formatter="dateFormat"></el-table-column>
+        <el-table-column label="操作" width="120px">
           <template slot-scope="scope">
             <el-button
               type="primary"
@@ -42,13 +37,6 @@
               size="mini"
               @click="del(scope.row)"
             ></el-button>
-            <el-tooltip effect="dark" content="分配角色" placement="top" :enterable="false">
-              <el-button
-                type="warning"
-                icon="el-icon-setting"
-                size="mini"
-              ></el-button>
-            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>
@@ -121,27 +109,13 @@
 <script>
   import Crumbs from '@/components/global/Crumbs.vue'
   import { dateFormat } from '../../plugins/date'
+  import { checkEmail, checkMobile } from '../../plugins/verify'
 
   export default {
     components: {
       Crumbs
     },
     data() {
-      // 自定义校验规则
-      var checkEmail = (rule, value, callback) => {
-        const regEmail = /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(\.[a-zA-Z0-9_-])+/
-        if (regEmail.test(value)) {
-          return callback()
-        }
-        callback(new Error('请输入合法的邮箱'))
-      }
-      var checkMobile = (rule, value, callback) => {
-        const regMobile = /^(0|86|17951)?(13[0-9]|15[012356789]|17[678]|18[0-9]|14[57])[0-9]{8}$/
-        if (regMobile.test(value)) {
-          return callback()
-        }
-        callback(new Error('请输入合法的手机号'))
-      }
       return {
         keywords: '',
         dataList: [],
@@ -250,7 +224,7 @@
       },
       // 获取用户数据
       async getAdminList() {
-        const { data: res } = await this.$http.get('auth/admin', {
+        const { data: res } = await this.$http.get('books/list', {
           params: this.queryInfo
         })
         if (res.status !== 200) {
@@ -346,7 +320,7 @@
         }
         // del
         const { data: res } = await this.$http.delete(
-          `auth/admin/${info.id}`
+          `books/list/${info.id}`
         )
         if (res.status !== 200) {
           this.$message({

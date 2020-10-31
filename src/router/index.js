@@ -15,6 +15,9 @@ import Config from '../components/general/Config'
 import Attachment from '../components/general/Attachment'
 import Database from '../components/general/Database'
 import Profile from '../components/general/Profile'
+import BookIndex from '../components/books/BookIndex'
+import Category from '../components/books/Category'
+import Preg from '../components/books/Preg'
 
 // 解决elementUI导航菜单点击报错
 const originalPush = VueRouter.prototype.push
@@ -47,7 +50,10 @@ const routes = [
       { path: '/general/config', component: Config },
       { path: '/general/attachment', component: Attachment },
       { path: '/general/database', component: Database },
-      { path: '/general/profile', component: Profile }
+      { path: '/general/profile', component: Profile },
+      { path: '/book/list', component: BookIndex },
+      { path: '/book/preg', component: Preg },
+      { path: '/book/category', component: Category }
     ]
   }
 ]

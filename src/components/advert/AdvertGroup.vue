@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Crumbs :crumbs-name="['小说','小说分类']"></Crumbs>
+    <Crumbs :crumbs-name="['广告','广告分类']"></Crumbs>
     <el-card>
       <!--面包屑-->
       <el-row :gutter="20">
@@ -101,10 +101,10 @@
         addDialogVisible: false,
         editDialogVisible: false,
         url: {
-          index: 'books/category',
-          create: 'books/category',
-          update: 'books/category',
-          delete: 'books/category'
+          index: 'advert/group',
+          create: 'advert/group',
+          update: 'advert/group',
+          delete: 'advert/group'
         },
         queryInfo: {
           pagesize: 10,

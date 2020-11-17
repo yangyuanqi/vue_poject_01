@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Crumbs :crumbs-name="['小说','小说分类']"></Crumbs>
+    <Crumbs :crumbs-name="['广告','广告列表']"></Crumbs>
     <el-card>
       <!--面包屑-->
       <el-row :gutter="20">
@@ -14,10 +14,19 @@
         </el-col>
       </el-row>
       <!--表格-->
-      <el-table :data="dataList" style="width: 100%" border row-key="id" :tree-props="{children: 'children'}">
+      <el-table :data="dataList" style="width: 100%" border stripe>
         <el-table-column type="index" label="#"></el-table-column>
-        <el-table-column prop="id" label="ID" width="100"></el-table-column>
-        <el-table-column prop="name" label="名称"></el-table-column>
+        <el-table-column prop="id" label="ID" width="180"></el-table-column>
+        <el-table-column prop="title" label="标题"></el-table-column>
+        <el-table-column prop="adver_group.name" label="分组"></el-table-column>
+        <el-table-column prop="image" label="图片">
+          <template slot-scope="scope">
+            <el-image style="width: 100px; height: 100px"
+                      :src="api + scope.row.image"
+                      :fit="fit"></el-image>
+          </template>
+        </el-table-column>
+        <el-table-column prop="url" label="链接"></el-table-column>
         <el-table-column prop="createtime" label="创建时间" :formatter="dateFormat"></el-table-column>
         <el-table-column label="操作" width="120px">
           <template slot-scope="scope">
@@ -36,23 +45,59 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <!--分页-->
+      <el-pagination
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="queryInfo.page"
+        :page-sizes="[10, 20, 50, 100]"
+        :page-size="queryInfo.pagesize"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
     </el-card>
 
     <!--添加-->
     <el-dialog title="添加" :visible.sync="addDialogVisible" width="50%" @close="addDialogClosed">
       <el-form :model="formData" :rules="addFormRules" ref="addFormRef" label-width="70px">
-        <el-form-item label="父级" prop="pid">
+        <el-form-item label="分组" prop="group_id">
           <div class="block">
             <el-cascader
-              :options="dataList"
-              v-model="formData.pid"
+              :options="advertGroup"
+              v-model="formData.group_id"
               :props="{ expandTrigger: 'hover',checkStrictly: true ,value: 'id',label: 'name',emitPath:false}"
               :show-all-levels="false"
               clearable></el-cascader>
           </div>
         </el-form-item>
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="formData.name"></el-input>
+        <el-form-item label="标题" prop="title">
+          <el-input v-model="formData.title"></el-input>
+        </el-form-item>
+        <el-form-item label="图片" prop="image">
+          <el-upload
+            class="avatar-uploader"
+            :action=url.upload
+            :show-file-list="false"
+            :headers = headers
+            :on-success="handleAvatarSuccess"
+            :before-upload="beforeAvatarUpload">
+            <img v-if="formData.image" :src="api + formData.image" class="avatar">
+            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+          </el-upload>
+        </el-form-item>
+        <el-form-item label="链接" prop="url">
+          <el-input v-model="formData.url"></el-input>
+        </el-form-item>
+        <el-form-item label="target" prop="target">
+          <el-select v-model="formData.target" placeholder="请选择">
+            <el-option
+              v-for="item in options"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
@@ -63,19 +108,43 @@
     <!--修改-->
     <el-dialog title="修改" :visible.sync="editDialogVisible" width="50%" @close="editDialogClosed">
       <el-form :model="formData" :rules="editFormRules" ref="editFormRef" label-width="70px">
-        <el-form-item label="父级" prop="pid">
+        <el-form-item label="分组" prop="group_id">
           <div class="block">
             <el-cascader
-              :options="dataList"
-              v-model="formData.pid"
+              :options="advertGroup"
+              v-model="formData.group_id"
               :props="{ expandTrigger: 'hover',checkStrictly: true ,value: 'id',label: 'name',emitPath:false}"
               :show-all-levels="false"
-              @change="parentCateChanged"
               clearable></el-cascader>
           </div>
         </el-form-item>
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="formData.name"></el-input>
+        <el-form-item label="标题" prop="title">
+          <el-input v-model="formData.title"></el-input>
+        </el-form-item>
+        <el-form-item label="图片" prop="image">
+          <el-upload
+            class="avatar-uploader"
+            :action=url.upload
+            :show-file-list="false"
+            :headers = headers
+            :on-success="handleAvatarSuccess"
+            :before-upload="beforeAvatarUpload">
+            <img v-if="formData.image" :src="api + formData.image" class="avatar">
+            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+          </el-upload>
+        </el-form-item>
+        <el-form-item label="链接" prop="url">
+          <el-input v-model="formData.url"></el-input>
+        </el-form-item>
+        <el-form-item label="target" prop="target">
+          <el-select v-model="formData.target" placeholder="请选择">
+            <el-option
+              v-for="item in options"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
@@ -89,22 +158,35 @@
 <script>
   import Crumbs from '@/components/global/Crumbs.vue'
   import { dateFormat } from '../../plugins/date'
+  import axios from 'axios'
   export default {
     components: {
       Crumbs
     },
     data() {
       return {
+        options: [{
+          value: '_blank',
+          lavel: '_blank'
+        }, {
+          value: '_self',
+          lavel: '_self'
+        }
+        ],
         keywords: '',
         dataList: [],
         total: 0,
+        preg: [],
+        advertGroup: [],
         addDialogVisible: false,
         editDialogVisible: false,
+        headers: { Authorization: window.sessionStorage.getItem('token') },
         url: {
-          index: 'books/category',
-          create: 'books/category',
-          update: 'books/category',
-          delete: 'books/category'
+          index: 'advert/list',
+          create: 'advert/list',
+          update: 'advert/list',
+          delete: 'advert/list',
+          upload: axios.defaults.baseURL + '/upload'
         },
         queryInfo: {
           pagesize: 10,
@@ -112,7 +194,12 @@
         },
         formData: {
           name: '',
-          pid: 0
+          list_author: '',
+          list_describe: '',
+          list_msg_img: '',
+          list_msg_last_time: '',
+          list_a: '',
+          content_text: ''
         },
         addFormRules: {
           name: [
@@ -135,14 +222,10 @@
       }
     },
     created() {
+      this.api = this.$api
       this.getAdminList()
     },
     methods: {
-      parentCateChanged() {
-        if (this.formData.pid == null) {
-          this.formData.pid = 0
-        }
-      },
       addDialogShow() {
         this.addDialogVisible = true
       },
@@ -177,6 +260,8 @@
         }
         this.dataList = res.data
         this.total = res.total
+        this.preg = res.preg
+        this.advertGroup = res.group
       },
       // 分页
       handleSizeChange(newSize) {
@@ -254,6 +339,24 @@
           message: res.msg
         })
         this.getAdminList()
+      },
+      handleAvatarSuccess(res, file) {
+        this.imageUrl = URL.createObjectURL(file.raw)
+        // this.formData.avatar = res.data[0]
+        this.$set(this.formData, 'image', res.data[0])
+        // this.formData.avatar = URL.createObjectURL(file.raw)
+      },
+      beforeAvatarUpload(file) {
+        const isJPG = file.type === 'image/jpeg'
+        const isLt2M = file.size / 1024 / 1024 < 2
+
+        if (!isJPG) {
+          this.$message.error('上传头像图片只能是 JPG 格式!')
+        }
+        if (!isLt2M) {
+          this.$message.error('上传头像图片大小不能超过 2MB!')
+        }
+        return isJPG && isLt2M
       }
     }
   }

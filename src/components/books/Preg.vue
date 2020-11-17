@@ -145,15 +145,6 @@
           list_a: '',
           content_text: ''
         },
-        // editForm: {
-        //   name: '',
-        //   list_author: '',
-        //   list_describe: '',
-        //   list_msg_img: '',
-        //   list_msg_last_time: '',
-        //   list_a: '',
-        //   content_text: ''
-        // },
         addFormRules: {
           name: [
             {

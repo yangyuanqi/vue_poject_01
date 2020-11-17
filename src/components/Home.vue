@@ -2,8 +2,11 @@
   <el-container class="home-container">
     <el-header>
       <div>
-        <img src="../assets/logo.png" alt />
-        <span>电商后台管理系统</span>
+<!--        <img src="../assets/logo.png" alt />-->
+        <div class="adminlogo" :style="isCollapse?'width:64px':'width:200px'">电商管理系统</div>
+        <ul class="nav-tab">
+          <li :key="index" v-for="(item,index) in tags" @click="tabRouter(item.router)">{{item.name}}<i class="el-icon-close" @click.stop="closeRouter(index)"></i></li>
+        </ul>
       </div>
       <el-button type="info" @click="logout">退出</el-button>
     </el-header>
@@ -31,7 +34,7 @@
               :index="'/'+subItem.name"
               v-for="subItem in item.children"
               :key="subItem.id"
-              @click="saveNavState('/'+subItem.name)"
+              @click="saveNavState('/'+subItem.name,subItem.title)"
             >
               <i class="el-icon-menu"></i>
               <span>{{subItem.title}}</span>
@@ -47,19 +50,23 @@
 </template>
 
 <script>
+
 export default {
   data() {
     return {
       menuList: [],
       iconsObj: {
-        125: 'iconfont icon-user',
-        103: 'iconfont icon-tijikongjian',
-        101: 'iconfont icon-shangpin',
-        102: 'iconfont icon-danju',
-        145: 'iconfont icon-baobiao'
+        2: 'iconfont icon-user',
+        4: 'iconfont icon-tijikongjian',
+        5: 'iconfont icon-shangpin',
+        66: 'iconfont icon-danju',
+        92: 'iconfont icon-baobiao',
+        191: 'iconfont icon-baobiao',
+        195: 'iconfont icon-baobiao'
       },
       isCollapse: false,
-      activePath: ''
+      activePath: '',
+      tags: []
     }
   },
   created() {
@@ -86,9 +93,33 @@ export default {
     toggleCollapse() {
       this.isCollapse = !this.isCollapse
     },
-    saveNavState(activePath) {
+    saveNavState(activePath, title) {
       window.sessionStorage.setItem('activePath', activePath)
       this.activePath = activePath
+      var flag = false
+      this.tags.forEach(item => {
+        if (item.name === title) {
+          flag = true
+        }
+      })
+      if (flag === false) {
+        this.tags.push({ name: title, router: activePath })
+      }
+    },
+    tabRouter(router) {
+      this.$router.push(router)
+    },
+    closeRouter(index) {
+      if (this.$route.path === this.tags[index].router) {
+        if (index !== 0) {
+          this.$router.push(this.tags[index - 1].router)
+        } else if (this.tags.length > 1) {
+          this.$router.push(this.tags[1].router)
+        } else {
+          this.$router.push('/welcome')
+        }
+      }
+      this.tags.splice(index, 1)
     }
   }
 }
@@ -106,10 +137,13 @@ export default {
   > div {
     display: flex;
     align-items: center;
+    height:100%;
     span {
       margin-left: 15px;
     }
   }
+  img{height:100%;width:200px;}
+  .adminlogo{height:100%;width:200px;line-height: 60px;text-align: center;}
 }
 .el-aside {
   background-color: #333744;
@@ -135,4 +169,10 @@ export default {
 .iconfont {
   margin-right: 10px;
 }
+  .nav-tab{display: flex;list-style: none;padding:0;margin:0;height: 100%;align-items: center;}
+  .nav-tab li{padding:0 10px;text-align: center;height: 100%;align-self: center;cursor: pointer;line-height: 60px;font-size: 13px;}
+  .nav-tab li i{margin-left:5px;display: none;}
+  .nav-tab li:hover{background-color: #2b4b6b;}
+  .nav-tab li:hover i{display: inline-block;}
+
 </style>

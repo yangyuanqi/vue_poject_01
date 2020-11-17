@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Crumbs :crumbs-name="['小说','小说分类']"></Crumbs>
+    <Crumbs :crumbs-name="['用户','用户群组']"></Crumbs>
     <el-card>
       <!--面包屑-->
       <el-row :gutter="20">
@@ -14,10 +14,14 @@
         </el-col>
       </el-row>
       <!--表格-->
-      <el-table :data="dataList" style="width: 100%" border row-key="id" :tree-props="{children: 'children'}">
+      <el-table :data="dataList" style="width: 100%" border stripe>
         <el-table-column type="index" label="#"></el-table-column>
-        <el-table-column prop="id" label="ID" width="100"></el-table-column>
-        <el-table-column prop="name" label="名称"></el-table-column>
+        <el-table-column prop="id" label="ID" width="180"></el-table-column>
+        <el-table-column prop="book_name" label="小说名称"></el-table-column>
+        <el-table-column prop="name" label="类型"></el-table-column>
+        <el-table-column prop="book_author" label="作者"></el-table-column>
+        <el-table-column prop="book_new_chapter" label="最新章节"></el-table-column>
+        <el-table-column prop="book_last_at" label="最后更新" ></el-table-column>
         <el-table-column prop="createtime" label="创建时间" :formatter="dateFormat"></el-table-column>
         <el-table-column label="操作" width="120px">
           <template slot-scope="scope">
@@ -36,23 +40,47 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <!--分页-->
+      <el-pagination
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="queryInfo.page"
+        :page-sizes="[10, 20, 50, 100]"
+        :page-size="queryInfo.pagesize"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
     </el-card>
 
     <!--添加-->
     <el-dialog title="添加" :visible.sync="addDialogVisible" width="50%" @close="addDialogClosed">
       <el-form :model="formData" :rules="addFormRules" ref="addFormRef" label-width="70px">
-        <el-form-item label="父级" prop="pid">
+        <el-form-item label="小说名称" prop="book_name">
+          <el-input v-model="formData.book_name"></el-input>
+        </el-form-item>
+        <el-form-item label="列表地址" prop="list_url">
+          <el-input v-model="formData.list_url"></el-input>
+        </el-form-item>
+        <el-form-item label="类型" prop="book_type">
           <div class="block">
             <el-cascader
-              :options="dataList"
-              v-model="formData.pid"
+              :options="bookType"
+              v-model="formData.book_type"
               :props="{ expandTrigger: 'hover',checkStrictly: true ,value: 'id',label: 'name',emitPath:false}"
               :show-all-levels="false"
               clearable></el-cascader>
           </div>
         </el-form-item>
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="formData.name"></el-input>
+        <el-form-item label="规则" prop="preg_id">
+          <el-select v-model="formData.preg_id" placeholder="请选择">
+            <el-option
+              v-for="item in preg"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id">
+            </el-option>
+          </el-select>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
@@ -63,19 +91,31 @@
     <!--修改-->
     <el-dialog title="修改" :visible.sync="editDialogVisible" width="50%" @close="editDialogClosed">
       <el-form :model="formData" :rules="editFormRules" ref="editFormRef" label-width="70px">
-        <el-form-item label="父级" prop="pid">
+        <el-form-item label="小说名称" prop="book_name">
+          <el-input v-model="formData.book_name"></el-input>
+        </el-form-item>
+        <el-form-item label="列表地址" prop="list_url">
+          <el-input v-model="formData.list_url"></el-input>
+        </el-form-item>
+        <el-form-item label="类型" prop="book_type">
           <div class="block">
             <el-cascader
-              :options="dataList"
-              v-model="formData.pid"
+              :options="bookType"
+              v-model="formData.book_type"
               :props="{ expandTrigger: 'hover',checkStrictly: true ,value: 'id',label: 'name',emitPath:false}"
               :show-all-levels="false"
-              @change="parentCateChanged"
               clearable></el-cascader>
           </div>
         </el-form-item>
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="formData.name"></el-input>
+        <el-form-item label="规则" prop="preg_id">
+          <el-select v-model="formData.preg_id" placeholder="请选择">
+            <el-option
+              v-for="item in preg"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id">
+            </el-option>
+          </el-select>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
@@ -98,13 +138,15 @@
         keywords: '',
         dataList: [],
         total: 0,
+        preg: [],
+        bookType: [],
         addDialogVisible: false,
         editDialogVisible: false,
         url: {
-          index: 'books/category',
-          create: 'books/category',
-          update: 'books/category',
-          delete: 'books/category'
+          index: 'books/list',
+          create: 'books/list',
+          update: 'books/list',
+          delete: 'books/list'
         },
         queryInfo: {
           pagesize: 10,
@@ -112,7 +154,12 @@
         },
         formData: {
           name: '',
-          pid: 0
+          list_author: '',
+          list_describe: '',
+          list_msg_img: '',
+          list_msg_last_time: '',
+          list_a: '',
+          content_text: ''
         },
         addFormRules: {
           name: [
@@ -138,11 +185,6 @@
       this.getAdminList()
     },
     methods: {
-      parentCateChanged() {
-        if (this.formData.pid == null) {
-          this.formData.pid = 0
-        }
-      },
       addDialogShow() {
         this.addDialogVisible = true
       },
@@ -177,6 +219,8 @@
         }
         this.dataList = res.data
         this.total = res.total
+        this.preg = res.preg
+        this.bookType = res.book_type
       },
       // 分页
       handleSizeChange(newSize) {

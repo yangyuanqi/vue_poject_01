@@ -4,5 +4,5 @@ export const dateFormat = (row, column) => {
     return ''
   }
   var moment = require('moment')
-  return moment(date * 1000).format('YYYY-DD-MM HH:mm:ss')
+  return moment(date * 1000).format('YYYY-MM-DD HH:mm:ss')
 }

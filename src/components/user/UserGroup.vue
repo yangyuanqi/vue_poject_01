@@ -1,32 +1,51 @@
 <template>
   <div>
-    <Crumbs :crumbs-name="['小说','小说分类']"></Crumbs>
+    <Crumbs :crumbs-name="['用户','用户群组']"></Crumbs>
     <el-card>
       <!--面包屑-->
       <el-row :gutter="20">
-        <el-col :span="8">
+        <el-col :span="7">
           <el-input placeholder="请输入内容" v-model="keywords">
             <el-button slot="append" icon="el-icon-search"></el-button>
           </el-input>
         </el-col>
-        <el-col :span="4">
-          <el-button type="primary" @click="addDialogShow">添加</el-button>
-        </el-col>
+        <el-button-group>
+          <el-button type="info" icon="el-icon-refresh"></el-button>
+          <el-button type="primary" icon="el-icon-plus" @click="addDialogShow">添加</el-button>
+        </el-button-group>
       </el-row>
       <!--表格-->
-      <el-table :data="dataList" style="width: 100%" border row-key="id" :tree-props="{children: 'children'}">
+      <el-table :data="dataList" style="width: 100%" border stripe>
         <el-table-column type="index" label="#"></el-table-column>
-        <el-table-column prop="id" label="ID" width="100"></el-table-column>
-        <el-table-column prop="name" label="名称"></el-table-column>
+        <el-table-column prop="id" label="ID" width="180"></el-table-column>
+        <el-table-column prop="name" label="组名"></el-table-column>
+        <el-table-column prop="notice" label="群公告"></el-table-column>
+        <el-table-column prop="code" label="群二维码" width="90">
+            <template slot-scope="scope">
+              <el-avatar :size="60" :src="api + scope.row.code">
+                <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
+              </el-avatar>
+            </template>
+        </el-table-column>
         <el-table-column prop="createtime" label="创建时间" :formatter="dateFormat"></el-table-column>
-        <el-table-column label="操作" width="120px">
+        <el-table-column label="操作" width="">
           <template slot-scope="scope">
+            <el-button
+              type="primary"
+              size="mini"
+              @click="editDialogShow(scope.row)"
+            >查看群成员</el-button>
+            <el-button
+              type="primary"
+              size="mini"
+              @click="editDialogShow(scope.row)"
+            >禁言</el-button>
             <el-button
               type="primary"
               icon="el-icon-edit"
               size="mini"
               @click="editDialogShow(scope.row)"
-            ></el-button>
+            >修改</el-button>
             <el-button
               type="danger"
               icon="el-icon-delete"
@@ -36,23 +55,40 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <!--分页-->
+      <el-pagination
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="queryInfo.page"
+        :page-sizes="[10, 20, 50, 100]"
+        :page-size="queryInfo.pagesize"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      ></el-pagination>
     </el-card>
 
     <!--添加-->
     <el-dialog title="添加" :visible.sync="addDialogVisible" width="50%" @close="addDialogClosed">
       <el-form :model="formData" :rules="addFormRules" ref="addFormRef" label-width="70px">
-        <el-form-item label="父级" prop="pid">
-          <div class="block">
-            <el-cascader
-              :options="dataList"
-              v-model="formData.pid"
-              :props="{ expandTrigger: 'hover',checkStrictly: true ,value: 'id',label: 'name',emitPath:false}"
-              :show-all-levels="false"
-              clearable></el-cascader>
-          </div>
-        </el-form-item>
-        <el-form-item label="名称" prop="name">
+        <el-form-item label="组名" prop="name">
           <el-input v-model="formData.name"></el-input>
+        </el-form-item>
+        <el-form-item label="群公告" prop="notice">
+          <el-input v-model="formData.notice"></el-input>
+        </el-form-item>
+        <el-form-item label="群二维码" prop="code">
+          <el-upload
+            class="avatar-uploader"
+            :action=url.upload
+            :show-file-list="false"
+            :headers = headers
+            :on-success="handleAvatarSuccess"
+            :before-upload="beforeAvatarUpload">
+            <img v-if="formData.code" :src="api + formData.code" class="avatar">
+            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+          </el-upload>
+          <el-input type="hidden" v-model="formData.code"></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
@@ -63,19 +99,24 @@
     <!--修改-->
     <el-dialog title="修改" :visible.sync="editDialogVisible" width="50%" @close="editDialogClosed">
       <el-form :model="formData" :rules="editFormRules" ref="editFormRef" label-width="70px">
-        <el-form-item label="父级" prop="pid">
-          <div class="block">
-            <el-cascader
-              :options="dataList"
-              v-model="formData.pid"
-              :props="{ expandTrigger: 'hover',checkStrictly: true ,value: 'id',label: 'name',emitPath:false}"
-              :show-all-levels="false"
-              @change="parentCateChanged"
-              clearable></el-cascader>
-          </div>
-        </el-form-item>
-        <el-form-item label="名称" prop="name">
+        <el-form-item label="组名" prop="name">
           <el-input v-model="formData.name"></el-input>
+        </el-form-item>
+        <el-form-item label="群公告" prop="notice">
+          <el-input v-model="formData.notice"></el-input>
+        </el-form-item>
+        <el-form-item label="群二维码" prop="code">
+          <el-upload
+            class="avatar-uploader"
+            :action=url.upload
+            :show-file-list="false"
+            :headers = headers
+            :on-success="handleAvatarSuccess"
+            :before-upload="beforeAvatarUpload">
+            <img v-if="formData.code" :src="api + formData.code" class="avatar">
+            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+          </el-upload>
+          <el-input type="hidden" v-model="formData.code"></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
@@ -89,6 +130,7 @@
 <script>
   import Crumbs from '@/components/global/Crumbs.vue'
   import { dateFormat } from '../../plugins/date'
+  import axios from 'axios'
   export default {
     components: {
       Crumbs
@@ -98,13 +140,18 @@
         keywords: '',
         dataList: [],
         total: 0,
+        preg: [],
+        bookType: [],
         addDialogVisible: false,
         editDialogVisible: false,
+        headers: { Authorization: window.sessionStorage.getItem('token') },
+        api: '',
         url: {
-          index: 'books/category',
-          create: 'books/category',
-          update: 'books/category',
-          delete: 'books/category'
+          index: 'user/group',
+          create: 'user/group',
+          update: 'user/group',
+          delete: 'user/group',
+          upload: axios.defaults.baseURL + '/upload'
         },
         queryInfo: {
           pagesize: 10,
@@ -112,7 +159,8 @@
         },
         formData: {
           name: '',
-          pid: 0
+          notice: '',
+          code: ''
         },
         addFormRules: {
           name: [
@@ -135,14 +183,10 @@
       }
     },
     created() {
+      this.api = this.$api
       this.getAdminList()
     },
     methods: {
-      parentCateChanged() {
-        if (this.formData.pid == null) {
-          this.formData.pid = 0
-        }
-      },
       addDialogShow() {
         this.addDialogVisible = true
       },
@@ -177,6 +221,8 @@
         }
         this.dataList = res.data
         this.total = res.total
+        this.preg = res.preg
+        this.bookType = res.book_type
       },
       // 分页
       handleSizeChange(newSize) {
@@ -254,7 +300,54 @@
           message: res.msg
         })
         this.getAdminList()
+      },
+      handleAvatarSuccess(res, file) {
+        // this.imageUrl = URL.createObjectURL(file.raw)
+        if (res.status === 200) {
+          // this.formData.code = res.data[0]
+          this.$set(this.formData, 'code', res.data[0])
+        } else {
+          this.$message.error('上传失败')
+        }
+        // this.formData.avatar = URL.createObjectURL(file.raw)
+      },
+      beforeAvatarUpload(file) {
+        const isJPG = file.type === 'image/jpeg'
+        const isLt2M = file.size / 1024 / 1024 < 2
+
+        if (!isJPG) {
+          this.$message.error('上传头像图片只能是 JPG 格式!')
+        }
+        if (!isLt2M) {
+          this.$message.error('上传头像图片大小不能超过 2MB!')
+        }
+        return isJPG && isLt2M
       }
     }
   }
 </script>
+<style lang="less">
+  .avatar-uploader .el-upload {
+    border: 1px dashed #d9d9d9;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .avatar-uploader .el-upload:hover {
+    border-color: #409EFF;
+  }
+  .avatar-uploader-icon {
+    font-size: 28px;
+    color: #8c939d;
+    width: 178px;
+    height: 178px;
+    line-height: 178px !important;
+    text-align: center;
+  }
+  .avatar {
+    width: 178px;
+    height: 178px;
+    display: block;
+  }
+</style>

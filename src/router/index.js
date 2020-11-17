@@ -3,7 +3,7 @@ import VueRouter from 'vue-router'
 import Login from '../components/Login.vue'
 import Home from '../components/Home.vue'
 import Welcome from '../components/Welcome.vue'
-import Users from '../components/user/Users.vue'
+import Users from '../components/user/User.vue'
 import Rights from '../components/power/Rights.vue'
 import Roles from '../components/power/Roles.vue'
 import Cate from '../components/goods/Cate.vue'
@@ -18,6 +18,10 @@ import Profile from '../components/general/Profile'
 import BookIndex from '../components/books/BookIndex'
 import Category from '../components/books/Category'
 import Preg from '../components/books/Preg'
+import UserGroup from '../components/user/UserGroup'
+import UserRule from '../components/user/UserRule'
+import AdvertGroup from '../components/advert/AdvertGroup'
+import AdvertList from '../components/advert/AdvertList'
 
 // 解决elementUI导航菜单点击报错
 const originalPush = VueRouter.prototype.push
@@ -39,7 +43,9 @@ const routes = [
     redirect: '/welcome',
     children: [
       { path: '/welcome', component: Welcome },
-      { path: '/users', component: Users },
+      { path: '/user/user', component: Users },
+      { path: '/user/group', component: UserGroup },
+      { path: '/user/rule', component: UserRule },
       { path: '/rights', component: Rights },
       { path: '/roles', component: Roles },
       { path: '/categories', component: Cate },
@@ -53,7 +59,9 @@ const routes = [
       { path: '/general/profile', component: Profile },
       { path: '/book/list', component: BookIndex },
       { path: '/book/preg', component: Preg },
-      { path: '/book/category', component: Category }
+      { path: '/book/category', component: Category },
+      { path: '/advert/list', component: AdvertList },
+      { path: '/advert/group', component: AdvertGroup }
     ]
   }
 ]

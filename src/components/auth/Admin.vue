@@ -144,6 +144,7 @@
       }
       return {
         keywords: '',
+        // 基础数据
         dataList: [],
         total: 0,
         addDialogVisible: false,
@@ -234,16 +235,19 @@
         this.addForm.status = 'normal'
       },
       editDialogShow(userinfo) {
-        this.editForm = userinfo
+        this.formData = JSON.parse(JSON.stringify(userinfo))
         this.editDialogVisible = true
       },
       addDialogClosed() {
-        this.$refs.addFormRef.resetFields()
         this.addDialogVisible = false
+        this.$refs.addFormRef.resetFields()
+        this.formData = {}
       },
       // 监听对话框关闭
       editDialogClosed() {
         this.editDialogVisible = false
+        this.$refs.editFormRef.resetFields()
+        this.formData = {}
       },
       dateFormat(row, column) {
         return dateFormat(row, column)

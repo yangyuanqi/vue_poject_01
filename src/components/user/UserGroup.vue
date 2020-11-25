@@ -138,14 +138,15 @@
     data() {
       return {
         keywords: '',
-        dataList: [],
-        total: 0,
         preg: [],
         bookType: [],
+        api: '',
+        // 基础数据
+        dataList: [],
+        total: 0,
         addDialogVisible: false,
         editDialogVisible: false,
         headers: { Authorization: window.sessionStorage.getItem('token') },
-        api: '',
         url: {
           index: 'user/group',
           create: 'user/group',

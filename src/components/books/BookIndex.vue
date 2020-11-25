@@ -136,10 +136,11 @@
     data() {
       return {
         keywords: '',
-        dataList: [],
-        total: 0,
         preg: [],
         bookType: [],
+        // 基础数据
+        dataList: [],
+        total: 0,
         addDialogVisible: false,
         editDialogVisible: false,
         url: {

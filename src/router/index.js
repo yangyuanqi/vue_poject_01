@@ -1,4 +1,5 @@
 import Vue from 'vue'
+import axios from 'axios'
 import VueRouter from 'vue-router'
 import Login from '../components/Login.vue'
 import Home from '../components/Home.vue'
@@ -74,6 +75,18 @@ router.beforeEach((to, from, next) => {
   if (to.path === '/login') return next()
   const tokenStr = window.sessionStorage.getItem('token')
   if (!tokenStr) return next('/login')
+  // 响应拦截器
+  axios.interceptors.response.use(
+    function (res) {
+      // 对响应数据做点什么
+      return res
+    },
+    function () {
+      // 对响应错误做点什么
+       // return Promise.reject(error)
+       return next('/login')
+    }
+  )
   next()
 })
 

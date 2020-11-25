@@ -5,7 +5,7 @@
       <!--面包屑-->
       <el-row :gutter="20">
         <el-col :span="8">
-          <el-input placeholder="请输入内容" v-model="keywords">
+          <el-input placeholder="请输入内容" v-model="queryInfo.keywords">
             <el-button slot="append" icon="el-icon-search"></el-button>
           </el-input>
         </el-col>
@@ -23,7 +23,7 @@
           <template slot-scope="scope">
             <el-image style="width: 100px; height: 100px"
                       :src="api + scope.row.image"
-                      :fit="fit"></el-image>
+                      fit="cover"></el-image>
           </template>
         </el-table-column>
         <el-table-column prop="url" label="链接"></el-table-column>
@@ -165,6 +165,7 @@
     },
     data() {
       return {
+        // select
         options: [{
           value: '_blank',
           lavel: '_blank'
@@ -173,11 +174,12 @@
           lavel: '_self'
         }
         ],
-        keywords: '',
+        // 分组
+        advertGroup: [],
+        // 基础数据
+        // 列表数据与分页
         dataList: [],
         total: 0,
-        preg: [],
-        advertGroup: [],
         addDialogVisible: false,
         editDialogVisible: false,
         headers: { Authorization: window.sessionStorage.getItem('token') },
@@ -189,6 +191,7 @@
           upload: axios.defaults.baseURL + '/upload'
         },
         queryInfo: {
+          keywords: '',
           pagesize: 10,
           page: 1
         },
@@ -229,14 +232,14 @@
       addDialogShow() {
         this.addDialogVisible = true
       },
-      editDialogShow(userinfo) {
-        this.formData = JSON.parse(JSON.stringify(userinfo))
-        this.editDialogVisible = true
-      },
       addDialogClosed() {
         this.addDialogVisible = false
         this.$refs.addFormRef.resetFields()
         this.formData = {}
+      },
+      editDialogShow(userinfo) {
+        this.formData = JSON.parse(JSON.stringify(userinfo))
+        this.editDialogVisible = true
       },
       // 监听对话框关闭
       editDialogClosed() {
@@ -260,7 +263,6 @@
         }
         this.dataList = res.data
         this.total = res.total
-        this.preg = res.preg
         this.advertGroup = res.group
       },
       // 分页

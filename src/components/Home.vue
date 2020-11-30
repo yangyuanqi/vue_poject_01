@@ -5,7 +5,7 @@
 <!--        <img src="../assets/logo.png" alt />-->
         <div class="adminlogo" :style="isCollapse?'width:64px':'width:200px'">电商管理系统</div>
         <ul class="nav-tab">
-          <li :key="index" v-for="(item,index) in tags" @click="tabRouter(item.router)">{{item.name}}<i class="el-icon-close" @click.stop="closeRouter(index)"></i></li>
+          <li :key="index" v-for="(item,index) in tags"  @click="tabRouter(item.router)">{{item.name}}<i class="el-icon-close" @click.stop="closeRouter(index)"></i></li>
         </ul>
       </div>
       <el-button type="info" @click="logout">退出</el-button>
@@ -42,7 +42,7 @@
           </el-submenu>
         </el-menu>
       </el-aside>
-      <el-main>
+      <el-main :style="isCollapse?'margin-left:64px':'margin-left:200px'">
         <router-view></router-view>
       </el-main>
     </el-container>
@@ -127,6 +127,9 @@ export default {
 
 <style lang="less" scoped>
 .el-header {
+  position: fixed;
+  width:100%;
+  z-index: 9;
   background-color: #373d41;
   display: flex;
   justify-content: space-between;
@@ -143,9 +146,13 @@ export default {
     }
   }
   img{height:100%;width:200px;}
-  .adminlogo{height:100%;width:200px;line-height: 60px;text-align: center;}
+  .adminlogo{height:100%;width:200px;line-height: 60px;text-align: center;overflow: hidden;}
 }
 .el-aside {
+  position: fixed;
+  height:100%;
+  z-index: 8;
+  transform: translateY(60px);
   background-color: #333744;
   .el-menu {
     border-right: none;
@@ -162,6 +169,8 @@ export default {
 }
 .el-main {
   background-color: #eaedf1;
+  margin-left:200px;
+  margin-top:60px;
 }
 .home-container {
   height: 100%;
@@ -169,10 +178,10 @@ export default {
 .iconfont {
   margin-right: 10px;
 }
-  .nav-tab{display: flex;list-style: none;padding:0;margin:0;height: 100%;align-items: center;}
-  .nav-tab li{padding:0 10px;text-align: center;height: 100%;align-self: center;cursor: pointer;line-height: 60px;font-size: 13px;}
-  .nav-tab li i{margin-left:5px;display: none;}
-  .nav-tab li:hover{background-color: #2b4b6b;}
-  .nav-tab li:hover i{display: inline-block;}
+.nav-tab{display: flex;list-style: none;padding:0;margin:0;height: 100%;align-items: center;overflow: hidden;}
+.nav-tab li{position:relative;padding:0 20px 0 10px;text-align: center;height: 100%;align-self: center;cursor: pointer;line-height: 60px;font-size: 13px;}
+.nav-tab li i{position:absolute;top:24px;right:3px;margin-left:5px;display: none;}
+.nav-tab li:hover{background-color: #2b4b6b;}
+.nav-tab li:hover i{display: inline-block;}
 
 </style>

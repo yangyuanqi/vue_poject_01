@@ -1,16 +1,38 @@
 <template>
   <div>
-    <Crumbs :crumbs-name="['权限', '角色组']"></Crumbs>
+    <!--面包屑-->
+    <Crumbs :crumbs-name="['主页', '文章列表']"></Crumbs>
     <el-card>
-      <!--面包屑-->
+      <!--search-->
       <el-row :gutter="20">
-        <el-col :span="8">
-          <el-input placeholder="请输入内容" v-model="queryInfo.keywords">
-            <el-button slot="append" icon="el-icon-search"></el-button>
-          </el-input>
+        <el-col :span="2">
+          <el-button type="primary" @click="addDialogShow"
+            >添加</el-button
+          ></el-col
+        >
+        <el-col :span="3">
+          <el-cascader
+            :options="category"
+            v-model="queryInfo.category_id"
+            :props="{
+              expandTrigger: 'hover',
+              checkStrictly: true,
+              value: 'id',
+              label: 'name',
+              emitPath: false
+            }"
+            :show-all-levels="false"
+            clearable
+          ></el-cascader>
         </el-col>
-        <el-col :span="4">
-          <el-button type="primary" @click="addDialogShow">添加</el-button>
+        <el-col :span="5">
+          <el-input placeholder="标题" v-model="queryInfo.title">
+            <el-button
+              slot="append"
+              icon="el-icon-search"
+              @click="getAdminList"
+            ></el-button>
+          </el-input>
         </el-col>
       </el-row>
       <!--表格-->
@@ -22,30 +44,48 @@
         :tree-props="{ children: 'children' }"
       >
         <el-table-column type="index" label="#"></el-table-column>
-        <el-table-column prop="id" label="ID" width="180"></el-table-column>
-        <el-table-column prop="name" label="组名"></el-table-column>
-        <el-table-column prop="status" label="状态">
+        <el-table-column prop="id" label="ID" width="100"></el-table-column>
+        <el-table-column prop="title" label="标题"></el-table-column>
+        <el-table-column
+          prop="cms_category.name"
+          label="分类"
+        ></el-table-column>
+        <el-table-column prop="author" label="作者"></el-table-column>
+        <el-table-column prop="hits" label="点击量"></el-table-column>
+        <el-table-column prop="image" label="缩略图">
           <template slot-scope="scope">
-            <span v-if="scope.row.status === 0">隐藏</span>
-            <span v-else>正常</span>
+            <el-image
+              style="width: 100px; height: 100px"
+              :src="scope.row.image"
+              :preview-src-list="[scope.row.image]"
+            ></el-image>
           </template>
         </el-table-column>
         <el-table-column
-          prop="createtime"
-          label="创建时间"
+          prop="updatetime"
+          label="更新时间"
           :formatter="dateFormat"
         ></el-table-column>
+        <el-table-column
+          prop="createtime"
+          label="发布时间"
+          :formatter="dateFormat"
+        ></el-table-column>
+        <el-table-column prop="status" label="状态">
+          <template slot-scope="scope">
+            <el-tag v-if="scope.row.status === 0">未发布</el-tag>
+            <el-tag v-else>已发布</el-tag>
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="120px">
           <template slot-scope="scope">
             <el-button
-              v-if="scope.row.id != 1"
               type="primary"
               icon="el-icon-edit"
               size="mini"
               @click="editDialogShow(scope.row)"
             ></el-button>
             <el-button
-              v-if="scope.row.id != 1"
               type="danger"
               icon="el-icon-delete"
               size="mini"
@@ -54,17 +94,6 @@
           </template>
         </el-table-column>
       </el-table>
-
-      <!--分页-->
-      <el-pagination
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-        :current-page="queryInfo.page"
-        :page-sizes="[10, 20, 50, 100]"
-        :page-size="queryInfo.pagesize"
-        layout="total, sizes, prev, pager, next, jumper"
-        :total="total"
-      ></el-pagination>
     </el-card>
 
     <!--添加-->
@@ -80,11 +109,11 @@
         ref="addFormRef"
         label-width="70px"
       >
-        <el-form-item label="父级" prop="pid">
+        <el-form-item label="父级" prop="category_id">
           <div class="block">
             <el-cascader
-              :options="dataList"
-              v-model="formData.pid"
+              :options="category"
+              v-model="formData.category_id"
               :props="{
                 expandTrigger: 'hover',
                 checkStrictly: true,
@@ -97,21 +126,33 @@
             ></el-cascader>
           </div>
         </el-form-item>
-        <el-form-item label="名称" prop="title">
-          <el-input v-model="formData.name"></el-input>
+        <el-form-item label="标题" prop="title">
+          <el-input v-model="formData.title"></el-input>
         </el-form-item>
-        <el-form-item label="权限" prop="rules">
-          <el-tree
-            :data="rules"
-            :props="{ label: 'title', children: 'children' }"
-            show-checkbox
-            @check-change="handleCheckChange"
+        <el-form-item label="作者" prop="author">
+          <el-input v-model="formData.author"></el-input>
+        </el-form-item>
+        <el-form-item label="图片" prop="image">
+          <el-upload
+            class="avatar-uploader"
+            :action="url.upload"
+            :show-file-list="false"
+            :headers="headers"
+            :on-success="handleAvatarSuccess"
+            :before-upload="beforeAvatarUpload"
           >
-          </el-tree>
+            <img v-if="formData.image" :src="formData.image" class="avatar" />
+            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+          </el-upload>
+        </el-form-item>
+        <el-form-item label="内容" prop="content">
+          <Editor v-model="formData.content"></Editor>
         </el-form-item>
         <el-form-item label="状态" prop="status">
-          <el-radio v-model="formData.status" :label="1">正常</el-radio>
-          <el-radio v-model="formData.status" :label="0">隐藏</el-radio>
+          <el-radio-group v-model="formData.status">
+            <el-radio :label="1">已发布</el-radio>
+            <el-radio :label="0">未发布</el-radio>
+          </el-radio-group>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
@@ -132,11 +173,11 @@
         ref="editFormRef"
         label-width="70px"
       >
-        <el-form-item label="父级" prop="pid">
+        <el-form-item label="父级" prop="category_id">
           <div class="block">
             <el-cascader
-              :options="dataList"
-              v-model="formData.pid"
+              :options="category"
+              v-model="formData.category_id"
               :props="{
                 expandTrigger: 'hover',
                 checkStrictly: true,
@@ -149,24 +190,33 @@
             ></el-cascader>
           </div>
         </el-form-item>
-        <el-form-item label="名称" prop="title">
-          <el-input v-model="formData.name"></el-input>
+        <el-form-item label="标题" prop="title">
+          <el-input v-model="formData.title"></el-input>
         </el-form-item>
-        <el-form-item label="权限" prop="rules">
-          <el-tree
-            :data="rules"
-            :props="{ label: 'title', children: 'children' }"
-            node-key="id"
-            :default-checked-keys="treeKeys"
-            ref="tree"
-            show-checkbox
-            @check-change="handleCheckChange"
+        <el-form-item label="作者" prop="author">
+          <el-input v-model="formData.author"></el-input>
+        </el-form-item>
+        <el-form-item label="图片" prop="image">
+          <el-upload
+            class="avatar-uploader"
+            :action="url.upload"
+            :show-file-list="false"
+            :headers="headers"
+            :on-success="handleAvatarSuccess"
+            :before-upload="beforeAvatarUpload"
           >
-          </el-tree>
+            <img v-if="formData.image" :src="formData.image" class="avatar" />
+            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+          </el-upload>
+        </el-form-item>
+        <el-form-item label="内容" prop="content">
+          <Editor v-model="formData.content"></Editor>
         </el-form-item>
         <el-form-item label="状态" prop="status">
-          <el-radio v-model="formData.status" :label="1">正常</el-radio>
-          <el-radio v-model="formData.status" :label="0">隐藏</el-radio>
+          <el-radio-group v-model="formData.status">
+            <el-radio :label="1">已发布</el-radio>
+            <el-radio :label="0">未发布</el-radio>
+          </el-radio-group>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
@@ -180,60 +230,54 @@
 <script>
 import Crumbs from '@/components/global/Crumbs.vue'
 import { dateFormat } from '../../plugins/date'
+import Editor from '../global/Editor'
+
 import axios from 'axios'
 export default {
   components: {
-    Crumbs
+    Crumbs,
+    Editor
   },
   data() {
     return {
-      // 分组
-      rules: [],
-      treeId: [],
-      treeKeys: [],
-      // advertGroup: [],
+      keywords: '',
+      // select
+      options: [
+        {
+          value: '_blank',
+          lavel: '_blank'
+        },
+        {
+          value: '_self',
+          lavel: '_self'
+        }
+      ],
+      category: [],
+      headers: { Authorization: window.sessionStorage.getItem('token') },
+      isClear: false,
       // 基础数据
-      // 列表数据与分页
       dataList: [],
       total: 0,
       addDialogVisible: false,
       editDialogVisible: false,
-      headers: { Authorization: window.sessionStorage.getItem('token') },
       url: {
-        index: 'auth/group',
-        create: 'auth/group',
-        update: 'auth/group',
-        delete: 'auth/group',
+        index: 'cms/article',
+        create: 'cms/article',
+        update: 'cms/article',
+        delete: 'cms/article',
         upload: axios.defaults.baseURL + '/upload'
       },
       queryInfo: {
-        keywords: '',
         pagesize: 10,
         page: 1
       },
       formData: {
-        name: '',
-        status: 1,
-        rules: []
+        title: '',
+        pid: 0,
+        status: 0
       },
-      addFormRules: {
-        name: [
-          {
-            required: true,
-            message: '请输入名称',
-            trigger: 'blur'
-          }
-        ]
-      },
-      editFormRules: {
-        name: [
-          {
-            required: true,
-            message: '请输入名称',
-            trigger: 'blur'
-          }
-        ]
-      }
+      addFormRules: {},
+      editFormRules: {}
     }
   },
   created() {
@@ -241,27 +285,32 @@ export default {
     this.getAdminList()
   },
   methods: {
+    parentCateChanged() {
+      if (this.formData.pid == null) {
+        this.formData.pid = 0
+      }
+    },
     addDialogShow() {
       this.addDialogVisible = true
       this.formData.status = 1
-      this.formData.pid = 1
+      this.formData.isnav = 0
+      this.formData.type = 0
+      this.formData.target = '_self'
+    },
+    editDialogShow(userinfo) {
+      this.formData = JSON.parse(JSON.stringify(userinfo))
+      this.editDialogVisible = true
     },
     addDialogClosed() {
       this.addDialogVisible = false
       this.$refs.addFormRef.resetFields()
       this.formData = {}
     },
-    editDialogShow(userinfo) {
-      this.formData = JSON.parse(JSON.stringify(userinfo))
-      this.editDialogVisible = true
-      this.treeKeys = this.formData.rules.split(',')
-    },
     // 监听对话框关闭
     editDialogClosed() {
       this.editDialogVisible = false
       this.$refs.editFormRef.resetFields()
       this.formData = {}
-      this.$refs.tree.setCheckedKeys([])
     },
     dateFormat(row, column) {
       return dateFormat(row, column)
@@ -279,7 +328,7 @@ export default {
       }
       this.dataList = res.data
       this.total = res.total
-      this.rules = res.rules
+      this.category = res.category
     },
     // 分页
     handleSizeChange(newSize) {
@@ -364,15 +413,42 @@ export default {
       })
       this.getAdminList()
     },
-    handleCheckChange(data, checked, indeterminate) {
-      if (checked) {
-        this.treeId.push(data.id)
-      } else {
-        var index = this.treeId.indexOf(data.id)
-        this.treeId.splice(index, 1)
+    async StatusChange(info) {
+      const { data: res } = await this.$http.put(
+        `cms/category/${info.id}/isnav/${info.isnav}`
+      )
+      if (res.status !== 200) {
+        info.status = !info.status
+        return this.$message({
+          type: 'warning',
+          message: '更新用户状态失败'
+        })
       }
-      this.formData.rules = this.treeId.join(',')
-      // console.log(this.treeId)
+      return this.$message({
+        type: 'success',
+        message: '更新用户状态成功'
+      })
+    },
+    handleAvatarSuccess(res, file) {
+      this.imageUrl = URL.createObjectURL(file.raw)
+      // this.formData.avatar = res.data[0]
+      this.$set(this.formData, 'image', res.data[0])
+      // this.formData.avatar = URL.createObjectURL(file.raw)
+    },
+    beforeAvatarUpload(file) {
+      const isJPG = file.type === 'image/jpeg'
+      const isLt2M = file.size / 1024 / 1024 < 2
+
+      if (!isJPG) {
+        this.$message.error('上传头像图片只能是 JPG 格式!')
+      }
+      if (!isLt2M) {
+        this.$message.error('上传头像图片大小不能超过 2MB!')
+      }
+      return isJPG && isLt2M
+    },
+    change(val) {
+      console.log(val)
     }
   }
 }

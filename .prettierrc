@@ -1,4 +1,5 @@
 {
     "semi":false,
     "singleQuote":true,
+    "trailingComma": "none" #去除尾部逗号
 }

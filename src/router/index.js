@@ -23,6 +23,10 @@ import UserGroup from '../components/user/UserGroup'
 import UserRule from '../components/user/UserRule'
 import AdvertGroup from '../components/advert/AdvertGroup'
 import AdvertList from '../components/advert/AdvertList'
+import CmsCategory from '../components/cms/Category'
+import Article from '../components/cms/Article'
+import Block from '../components/cms/Block'
+import Tags from '../components/cms/Tags'
 
 // 解决elementUI导航菜单点击报错
 const originalPush = VueRouter.prototype.push
@@ -62,7 +66,11 @@ const routes = [
       { path: '/book/preg', component: Preg },
       { path: '/book/category', component: Category },
       { path: '/advert/list', component: AdvertList },
-      { path: '/advert/group', component: AdvertGroup }
+      { path: '/advert/group', component: AdvertGroup },
+      { path: '/cms/category', component: CmsCategory },
+      { path: '/cms/article', component: Article },
+      { path: '/cms/block', component: Block },
+      { path: '/cms/tags', component: Tags }
     ]
   }
 ]

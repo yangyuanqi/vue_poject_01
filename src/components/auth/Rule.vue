@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Crumbs :crumbs-name="['广告','广告分类']"></Crumbs>
+    <Crumbs :crumbs-name="['广告','菜单规则']"></Crumbs>
     <el-card>
       <!--面包屑-->
       <el-row :gutter="20">
@@ -56,18 +56,42 @@
     <!--添加-->
     <el-dialog title="添加" :visible.sync="addDialogVisible" width="50%" @close="addDialogClosed">
       <el-form :model="formData" :rules="addFormRules" ref="addFormRef" label-width="70px">
+        <el-form-item label="菜单" prop="ismenu">
+          <el-radio-group v-model="formData.ismenu">
+            <el-radio :label=1>是</el-radio>
+            <el-radio :label=0>否</el-radio>
+          </el-radio-group>
+        </el-form-item>
         <el-form-item label="父级" prop="pid">
           <div class="block">
             <el-cascader
               :options="dataList"
               v-model="formData.pid"
-              :props="{ expandTrigger: 'hover',checkStrictly: true ,value: 'id',label: 'name',emitPath:false}"
+              :props="{ expandTrigger: 'hover',checkStrictly: true ,value: 'id',label: 'title',emitPath:false}"
               :show-all-levels="false"
               clearable></el-cascader>
           </div>
         </el-form-item>
-        <el-form-item label="名称" prop="name">
+        <el-form-item label="规则" prop="name">
           <el-input v-model="formData.name"></el-input>
+        </el-form-item>
+        <el-form-item label="标题" prop="title">
+          <el-input v-model="formData.title"></el-input>
+        </el-form-item>
+        <el-form-item label="图标" prop="icon">
+          <el-input v-model="formData.icon"></el-input>
+        </el-form-item>
+        <el-form-item label="权重" prop="weigh">
+          <el-input v-model="formData.weigh"></el-input>
+        </el-form-item>
+        <el-form-item label="备注" prop="remark">
+          <el-input v-model="formData.remark"></el-input>
+        </el-form-item>
+        <el-form-item label="状态"  prop="status">
+          <el-radio-group v-model="formData.status">
+            <el-radio :label=1>正常</el-radio>
+            <el-radio :label=0>隐藏</el-radio>
+          </el-radio-group>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
@@ -78,19 +102,42 @@
     <!--修改-->
     <el-dialog title="修改" :visible.sync="editDialogVisible" width="50%" @close="editDialogClosed">
       <el-form :model="formData" :rules="editFormRules" ref="editFormRef" label-width="70px">
+        <el-form-item label="菜单" prop="ismenu">
+          <el-radio-group v-model="formData.ismenu">
+            <el-radio :label=1>是</el-radio>
+            <el-radio :label=0>否</el-radio>
+          </el-radio-group>
+        </el-form-item>
         <el-form-item label="父级" prop="pid">
           <div class="block">
             <el-cascader
               :options="dataList"
               v-model="formData.pid"
-              :props="{ expandTrigger: 'hover',checkStrictly: true ,value: 'id',label: 'name',emitPath:false}"
+              :props="{ expandTrigger: 'hover',checkStrictly: true ,value: 'id',label: 'title',emitPath:false}"
               :show-all-levels="false"
-              @change="parentCateChanged"
               clearable></el-cascader>
           </div>
         </el-form-item>
-        <el-form-item label="名称" prop="name">
+        <el-form-item label="规则" prop="name">
           <el-input v-model="formData.name"></el-input>
+        </el-form-item>
+        <el-form-item label="标题" prop="title">
+          <el-input v-model="formData.title"></el-input>
+        </el-form-item>
+        <el-form-item label="图标" prop="icon">
+          <el-input v-model="formData.icon"></el-input>
+        </el-form-item>
+        <el-form-item label="权重" prop="weigh">
+          <el-input v-model="formData.weigh"></el-input>
+        </el-form-item>
+        <el-form-item label="备注" prop="remark">
+          <el-input v-model="formData.remark"></el-input>
+        </el-form-item>
+        <el-form-item label="状态"  prop="status">
+          <el-radio-group v-model="formData.status">
+            <el-radio :label=1>正常</el-radio>
+            <el-radio :label=0>隐藏</el-radio>
+          </el-radio-group>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
@@ -127,7 +174,9 @@
         },
         formData: {
           name: '',
-          pid: 0
+          pid: 0,
+          ismenu: 0,
+          status: 1
         },
         addFormRules: {
           name: [
@@ -159,16 +208,18 @@
         }
       },
       addDialogShow() {
+        this.formData.ismenu = 1
+        this.formData.status = 1
         this.addDialogVisible = true
-      },
-      editDialogShow(userinfo) {
-        this.formData = JSON.parse(JSON.stringify(userinfo))
-        this.editDialogVisible = true
       },
       addDialogClosed() {
         this.addDialogVisible = false
         this.$refs.addFormRef.resetFields()
         this.formData = {}
+      },
+      editDialogShow(userinfo) {
+        this.formData = JSON.parse(JSON.stringify(userinfo))
+        this.editDialogVisible = true
       },
       // 监听对话框关闭
       editDialogClosed() {

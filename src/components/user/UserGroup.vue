@@ -1,18 +1,39 @@
 <template>
   <div>
+    <!--面包屑-->
     <Crumbs :crumbs-name="['用户','用户群组']"></Crumbs>
     <el-card>
-      <!--面包屑-->
+      <!--search-->
       <el-row :gutter="20">
-        <el-col :span="7">
-          <el-input placeholder="请输入内容" v-model="keywords">
-            <el-button slot="append" icon="el-icon-search"></el-button>
+        <el-col :span="2">
+          <el-button type="primary" @click="addDialogShow"
+          >添加</el-button
+          ></el-col
+        >
+        <el-col :span="3">
+          <el-cascader
+            :options="category"
+            v-model="queryInfo.category_id"
+            :props="{
+              expandTrigger: 'hover',
+              checkStrictly: true,
+              value: 'id',
+              label: 'name',
+              emitPath: false
+            }"
+            :show-all-levels="false"
+            clearable
+          ></el-cascader>
+        </el-col>
+        <el-col :span="5">
+          <el-input placeholder="标题" v-model="queryInfo.title">
+            <el-button
+              slot="append"
+              icon="el-icon-search"
+              @click="getAdminList"
+            ></el-button>
           </el-input>
         </el-col>
-        <el-button-group>
-          <el-button type="info" icon="el-icon-refresh"></el-button>
-          <el-button type="primary" icon="el-icon-plus" @click="addDialogShow">添加</el-button>
-        </el-button-group>
       </el-row>
       <!--表格-->
       <el-table :data="dataList" style="width: 100%" border stripe>

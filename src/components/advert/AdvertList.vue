@@ -82,7 +82,7 @@
             :headers = headers
             :on-success="handleAvatarSuccess"
             :before-upload="beforeAvatarUpload">
-            <img v-if="formData.image" :src="api + formData.image" class="avatar">
+            <img v-if="formData.image" :src="formData.image" class="avatar">
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
           </el-upload>
         </el-form-item>
@@ -129,7 +129,7 @@
             :headers = headers
             :on-success="handleAvatarSuccess"
             :before-upload="beforeAvatarUpload">
-            <img v-if="formData.image" :src="api + formData.image" class="avatar">
+            <img v-if="formData.image" :src="formData.image" class="avatar">
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
           </el-upload>
         </el-form-item>
